@@ -1,0 +1,13 @@
+.container{
+    padding-top: 20px;
+}
+
+@page {
+    size: auto;
+}
+
+@media print { 
+    .hideprint { 
+       visibility: hidden; 
+    } 
+ } 

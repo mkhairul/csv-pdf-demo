@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Demo</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+    </script>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css"">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+    </script>
+
+    <script src="http://danml.com/js/download.js"></script>
+
+    <script src="js/papaparse.min.js"></script>
+
+    <link rel="stylesheet" href="css/custom.css" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Transactions</h1>
+        <table class="table table-striped data-table">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Transaction</th>
+                    <th scope="col">Units</th>
+                    <th scope="col">Value Per Unit (USD)</th>
+                    <th scope="col">Total Value (USD)</th>
+                    <th scope="col">Total Value (MYR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row" colspan="6">No data</th>
+                </tr>
+            </tbody>
+        </table>
+
+        <div>
+            <button type="button" class="hideprint btn btn-primary btn-lg" id="upload-csv">Upload CSV</button>
+            <button type="button" class="hideprint btn btn-secondary btn-lg" id="printpdf">Print PDF</button>
+            <div id="editor"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            $('#printpdf').on('click', function(){
+                console.log(
+                    window.btoa($('body')[0].outerHTML)
+                );
+
+
+                $.ajax({
+                    url: "http://localhost:9527/getpdf",
+                    type: "get", //send it through get method
+                    data: { 
+                        source: window.btoa($('body')[0].outerHTML), 
+                        key: '', 
+                        output_method_return: 2
+                    },
+                    success: function(response) {
+                        //console.log(response);
+                        
+                        download(response.prefix + response.base64, 'file.pdf', 'application/pdf');
+                        /*
+                        var link = document.createElement("a");
+                        link.download = name;
+                        link.href = response.prefix + response.base64;
+                        link.click();
+                        */
+                    },
+                    error: function(xhr) {
+                        //Do Something to handle error
+                    }
+                });
+            })
+
+            $('#upload-csv').on('click', function(){
+                Papa.parse("upload.csv"+"?_="+ (new Date).getTime(), {
+                    header: true,
+                    download: true,
+                    complete: function(results) {
+
+                        var rows = [];
+                        console.log(results);
+
+                        results.data.forEach(function(obj) {
+                            console.log(obj);
+                            var tr = $('<tr/>');
+                            tr.append($('<td>').html(obj['Date']))
+                            tr.append($('<td>').html(obj['Transaction']))
+                            tr.append($('<td>').html(obj['Units']))
+                            tr.append($('<td>').html(obj['Value Per Unit (USD)']))
+                            tr.append($('<td>').html(obj['Total Value (USD)']))
+                            tr.append($('<td>').html(obj['Total Value (MYR)']))
+                            rows.push(tr);
+                        })
+                        console.log(rows);
+                        $('.data-table tbody').html(rows);
+                        
+                    }
+                });
+            })
+            /*
+            $('#printpdf').on('click', function(){
+                console.log('test');
+                var element = document.getElementById('print-table');
+                //html2pdf(element).set({ html2canvas: { allowTaint: true } });
+                html2pdf(element).set({ allowTaint: true });
+            })
+            */
+        })
+    </script>
+</body>
+
+</html>
